@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Metode Numerik</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .calculator-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .result {
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #e8f4fc;
+            border-left: 4px solid #3498db;
+        }
+        .graph-container {
+            width: 100%;
+            height: 500px;
+            margin: 20px 0;
+        }
+        .user-manual {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 8px 8px 0 0;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            color: #333;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+            background-color: white;
+            border-radius: 0 0 8px 8px;
+            margin-bottom: 30px;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .calculator-section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Kalkulator Metode Numerik</h1>
+    
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'differentiation')">Turunan Numerik</button>
+        <button class="tablinks" onclick="openTab(event, 'manual')">Panduan Pengguna</button>
+    </div>
+
+    <div id="differentiation" class="tabcontent" style="display: block;">
+        <h2>Turunan Numerik</h2>
+        
+        <div class="calculator-section">
+            <h3>Input Fungsi</h3>
+            <div class="input-group">
+                <label for="function">Fungsi f(x):</label>
+                <input type="text" id="function" placeholder="contoh: x^2 + 3*x + 2" value="x^2">
+            </div>
+            
+            <div class="input-group">
+                <label for="point">Titik x:</label>
+                <input type="number" id="point" placeholder="contoh: 2" step="any" value="2">
+            </div>
+            
+            <div class="input-group">
+                <label for="step">Ukuran Langkah h:</label>
+                <input type="number" id="step" placeholder="contoh: 0.1" step="0.01" min="0.0001" value="0.1">
+            </div>
+            
+            <button onclick="calculateDerivative()">Hitung Turunan</button>
+            
+            <div id="method-selection" class="input-group">
+                <label>Metode:</label>
+                <div>
+                    <input type="radio" id="forward" name="method" value="forward" checked>
+                    <label for="forward" style="display: inline;">Hampiran Selisih Maju</label>
+                </div>
+                <div>
+                    <input type="radio" id="backward" name="method" value="backward">
+                    <label for="backward" style="display: inline;">Hampiran Selisih Mundur</label>
+                </div>
+            </div>
+            
+            <div id="result" class="result"></div>
+            
+            <h3>Tabel Iterasi</h3>
+            <div id="iteration-table"></div>
+            
+            <h3>Visualisasi Fungsi</h3>
+            <div id="graph" class="graph-container"></div>
+            
+            <h3>Representasi Matriks</h3>
+            <div id="matrix-representation"></div>
+        </div>
+    </div>
+
+    <div id="manual" class="tabcontent">
+        <div class="user-manual">
+            <h2>User Manual</h2>
+            
+            <h3>How to Use the Numerical Methods Calculator</h3>
+            <ol>
+                <li><strong>Input the Function:</strong> Enter your mathematical function in the form of f(x). Example: x^2 + 3*x + 2</li>
+                <li><strong>Enter the Point:</strong> Specify the x value where you want to calculate the derivative.</li>
+                <li><strong>Set Step Size:</strong> Choose the h value (step size) for your calculation. Smaller values give more precise results.</li>
+                <li><strong>Select Method:</strong> Choose between forward difference or backward difference approximation.</li>
+                <li><strong>Calculate:</strong> Click the "Calculate" button to compute the result.</li>
+            </ol>
+            
+            <h3>Understanding the Results</h3>
+            <ul>
+                <li><strong>Numerical Result:</strong> Displays the calculated derivative value.</li>
+                <li><strong>Iteration Table:</strong> Shows step-by-step calculations at each point.</li>
+                <li><strong>Function Visualization:</strong> Graphical representation of the function and its derivative approximation.</li>
+                <li><strong>Matrix Representation:</strong> Shows how the calculation can be represented in matrix form.</li>
+            </ul>
+            
+            <h3>Numerical Methods Explained</h3>
+            <h4>Forward Difference Approximation</h4>
+            <p>The forward difference approximation estimates the derivative using:</p>
+            <p>f'(x) ≈ [f(x + h) - f(x)] / h</p>
+            
+            <h4>Backward Difference Approximation</h4>
+            <p>The backward difference approximation estimates the derivative using:</p>
+            <p>f'(x) ≈ [f(x) - f(x - h)] / h</p>
+            
+            <h3>Troubleshooting</h3>
+            <ul>
+                <li>Ensure your function is properly formatted (use standard mathematical notation).</li>
+                <li>If the result seems inaccurate, try decreasing the step size h.</li>
+                <li>The calculator may not work with extremely complex functions or special functions.</li>
+            </ul>
+            
+            <h3>Visualization Guide</h3>
+            <div class="graph-container">
+                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/ae88447d-f5ac-47dc-a5ce-21bceb3117a9.png" alt="Diagram showing forward and backward difference approximation methods visually with tangent lines" />
+            </div>
+            <p>The graph shows your original function (blue curve), the exact derivative (green curve), and the numerical approximation (red points).</p>
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        function calculateDerivative() {
+            const funcStr = document.getElementById('function').value;
+            const x = parseFloat(document.getElementById('point').value);
+            const h = parseFloat(document.getElementById('step').value);
+            const method = document.querySelector('input[name="method"]:checked').value;
+            
+            try {
+                const func = math.compile(funcStr);
+                
+                let derivative, tableHTML, matrixHTML;
+                
+                if (method === 'forward') {
+                    derivative = (func.evaluate({x: x + h}) - func.evaluate({x: x})) / h;
+                    
+                    tableHTML = `
+                        <table>
+                            <tr>
+                                <th>Step</th>
+                                <th>x</th>
+                                <th>f(x)</th>
+                                <th>x + h</th>
+                                <th>f(x + h)</th>
+                                <th>Approximation</th>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>${x.toFixed(4)}</td>
+                                <td>${func.evaluate({x: x}).toFixed(6)}</td>
+                                <td>${(x + h).toFixed(4)}</td>
+                                <td>${func.evaluate({x: x + h}).toFixed(6)}</td>
+                                <td>${derivative.toFixed(6)}</td>
+                            </tr>
+                        </table>
+                    `;
+                    
+                    matrixHTML = `
+                        <p>The forward difference approximation can be represented as:</p>
+                        <p>f'(x) ≈ [f(x + h) - f(x)] / h = [${func.evaluate({x: x + h}).toFixed(4)} - ${func.evaluate({x: x}).toFixed(4)}] / ${h} = ${derivative.toFixed(6)}</p>
+                    `;
+                    
+                } else { // backward difference
+                    derivative = (func.evaluate({x: x}) - func.evaluate({x: x - h})) / h;
+                    
+                    tableHTML = `
+                        <table>
+                            <tr>
+                                <th>Step</th>
+                                <th>x - h</th>
+                                <th>f(x - h)</th>
+                                <th>x</th>
+                                <th>f(x)</th>
+                                <th>Approximation</th>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>${(x - h).toFixed(4)}</td>
+                                <td>${func.evaluate({x: x - h}).toFixed(6)}</td>
+                                <td>${x.toFixed(4)}</td>
+                                <td>${func.evaluate({x: x}).toFixed(6)}</td>
+                                <td>${derivative.toFixed(6)}</td>
+                            </tr>
+                        </table>
+                    `;
+                    
+                    matrixHTML = `
+                        <p>The backward difference approximation can be represented as:</p>
+                        <p>f'(x) ≈ [f(x) - f(x - h)] / h = [${func.evaluate({x: x}).toFixed(4)} - ${func.evaluate({x: x - h}).toFixed(4)}] / ${h} = ${derivative.toFixed(6)}</p>
+                    `;
+                }
+                
+                document.getElementById('result').innerHTML = `
+                    <p>Function: f(x) = ${funcStr}</p>
+                    <p>Derivative at x = ${x} using ${method === 'forward' ? 'forward' : 'backward'} difference:</p>
+                    <p>f'(${x}) ≈ ${derivative.toFixed(6)}</p>
+                `;
+                
+                document.getElementById('iteration-table').innerHTML = tableHTML;
+                document.getElementById('matrix-representation').innerHTML = matrixHTML;
+                
+                plotGraph(funcStr, x, h, method, derivative);
+                
+            } catch (error) {
+                document.getElementById('result').innerHTML = `Error: ${error.message}`;
+                document.getElementById('iteration-table').innerHTML = '';
+                document.getElementById('matrix-representation').innerHTML = '';
+                document.getElementById('graph').innerHTML = '';
+            }
+        }
+        
+        function plotGraph(funcStr, x, h, method, derivative) {
+            const func = math.compile(funcStr);
+            
+            // Generate data points for plotting
+            const xValues = [];
+            const yValues = [];
+            const derivativePoints = [];
+            const approxPoints = [];
+            
+            const startX = x - 2;
+            const endX = x + 2;
+            const steps = 100;
+            
+            // Add the point used in the calculation to the derivative points
+            derivativePoints.push({x: x, y: derivative});
+            
+            // Also add the approximation points (both methods)
+            if (method === 'forward') {
+                approxPoints.push({x: x, y: func.evaluate({x: x}), name: 'Point x'});
+                approxPoints.push({x: x + h, y: func.evaluate({x: x + h}), name: 'Point x + h'});
+            } else {
+                approxPoints.push({x: x - h, y: func.evaluate({x: x - h}), name: 'Point x - h'});
+                approxPoints.push({x: x, y: func.evaluate({x: x}), name: 'Point x'});
+            }
+            
+            for (let i = 0; i <= steps; i++) {
+                const currentX = startX + (endX - startX) * i / steps;
+                xValues.push(currentX);
+                yValues.push(func.evaluate({x: currentX}));
+            }
+            
+            // Create traces for the plot
+            const traces = [
+                {
+                    x: xValues,
+                    y: yValues,
+                    mode: 'lines',
+                    name: 'f(x)',
+                    line: {color: 'blue'}
+                },
+                {
+                    x: derivativePoints.map(p => p.x),
+                    y: derivativePoints.map(p => p.y),
+                    mode: 'markers',
+                    name: 'Numerical Derivative',
+                    marker: {color: 'red', size: 10}
+                }
+            ];
+            
+            // Add approximation points
+            if (approxPoints.length > 0) {
+                traces.push({
+                    x: approxPoints.map(p => p.x),
+                    y: approxPoints.map(p => p.y),
+                    mode: 'markers',
+                    name: 'Approximation Points',
+                    text: approxPoints.map(p => p.name),
+                    marker: {color: 'green', size: 10}
+                });
+            }
+            
+            // Create layout
+            const layout = {
+                title: 'Function and Numerical Derivative',
+                xaxis: {title: 'x'},
+                yaxis: {title: 'f(x)'},
+                showlegend: true
+            };
+            
+            // Create the plot
+            Plotly.newPlot('graph', traces, layout);
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.7.0/math.min.js"></script>
+</body>
+</html>
+
